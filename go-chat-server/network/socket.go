@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"go-chat-server/types"
 	"net/http"
+	"time"
 )
 
 // Http -> WebSocket 으로 업그레이드
@@ -43,6 +44,38 @@ func NewRoom() *Room {
 		Join:    make(chan *client),
 		Leave:   make(chan *client),
 		Clients: make(map[*client]bool),
+	}
+}
+
+func (c *client) Read() {
+	// 클라이언트가 들어오는 메시지를 읽는 함수
+	defer c.Socket.Close()
+	for {
+		var msg *message
+		err := c.Socket.ReadJSON(&msg)
+		if err != nil {
+			if !websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
+				break
+			}
+			panic(err)
+		} else {
+			msg.Time = time.Now().Unix()
+			msg.Name = c.Name
+
+			c.Room.Forward <- msg
+		}
+	}
+}
+
+func (c *client) Write() {
+	defer c.Socket.Close()
+
+	// 클라이언트가 메시지를 전송하는 함수
+	for msg := range c.Send {
+		err := c.Socket.WriteJSON(msg)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -86,4 +119,8 @@ func (r *Room) SocketServe(c *gin.Context) {
 	defer func() {
 		r.Leave <- client
 	}()
+
+	go client.Write()
+
+	client.Read()
 }

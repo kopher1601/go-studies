@@ -23,6 +23,11 @@ func NewServer() *Network {
 		AllowWebSockets:  true,
 	}))
 
+	r := NewRoom()
+	go r.RunInit()
+
+	n.engin.GET("/room", r.SocketServe)
+
 	return n
 }
 
