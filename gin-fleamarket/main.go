@@ -20,6 +20,9 @@ func main() {
 	itemController := controllers.NewItemController(itemService)
 
 	r := gin.Default()
+
 	r.GET("/items", itemController.FindAll)
+	r.GET("/items/:id", itemController.FindByID)
+
 	r.Run(":8080")
 }
