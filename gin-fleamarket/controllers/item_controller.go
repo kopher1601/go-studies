@@ -13,6 +13,7 @@ type ItermController interface {
 	FindByID(ctx *gin.Context)
 	Create(ctx *gin.Context)
 	Update(ctx *gin.Context)
+	Delete(ctx *gin.Context)
 }
 
 func NewItemController(service services.ItemService) ItermController {
@@ -21,6 +22,23 @@ func NewItemController(service services.ItemService) ItermController {
 
 type ItemControllerImpl struct {
 	service services.ItemService
+}
+
+func (i *ItemControllerImpl) Delete(ctx *gin.Context) {
+	itemID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item id"})
+		return
+	}
+
+	err = i.service.Delete(uint(itemID))
+	if err != nil {
+		if err.Error() == "Item not found" {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected error"})
+	}
+	ctx.Status(http.StatusOK)
 }
 
 func (i *ItemControllerImpl) Update(ctx *gin.Context) {

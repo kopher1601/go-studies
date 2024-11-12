@@ -11,6 +11,7 @@ type ItemService interface {
 	FindById(itemID uint) (*models.Item, error)
 	Create(createItemInput dto.CreateItemInput) (*models.Item, error)
 	Update(itemID uint, updateItemInput dto.UpdateItemInput) (*models.Item, error)
+	Delete(itemID uint) error
 }
 
 func NewItemService(repository repositories.ItemRepository) ItemService {
@@ -19,6 +20,10 @@ func NewItemService(repository repositories.ItemRepository) ItemService {
 
 type ItemServiceImpl struct {
 	repository repositories.ItemRepository
+}
+
+func (i *ItemServiceImpl) Delete(itemID uint) error {
+	return i.repository.Delete(itemID)
 }
 
 func (i *ItemServiceImpl) Update(itemID uint, updateItemInput dto.UpdateItemInput) (*models.Item, error) {
