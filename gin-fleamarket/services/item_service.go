@@ -10,14 +10,39 @@ type ItemService interface {
 	FindAll() (*[]models.Item, error)
 	FindById(itemID uint) (*models.Item, error)
 	Create(createItemInput dto.CreateItemInput) (*models.Item, error)
+	Update(itemID uint, updateItemInput dto.UpdateItemInput) (*models.Item, error)
+}
+
+func NewItemService(repository repositories.ItemRepository) ItemService {
+	return &ItemServiceImpl{repository: repository}
 }
 
 type ItemServiceImpl struct {
 	repository repositories.ItemRepository
 }
 
-func NewItemService(repository repositories.ItemRepository) ItemService {
-	return &ItemServiceImpl{repository: repository}
+func (i *ItemServiceImpl) Update(itemID uint, updateItemInput dto.UpdateItemInput) (*models.Item, error) {
+	targetItem, err := i.FindById(itemID)
+	if err != nil {
+		return nil, err
+	}
+
+	if updateItemInput.Name != nil {
+		targetItem.Name = *updateItemInput.Name
+	}
+
+	if updateItemInput.Price != nil {
+		targetItem.Price = *updateItemInput.Price
+	}
+
+	if updateItemInput.Description != nil {
+		targetItem.Description = *updateItemInput.Description
+	}
+
+	if updateItemInput.SoldOut != nil {
+		targetItem.SoldOut = *updateItemInput.SoldOut
+	}
+	return i.repository.Update(*targetItem)
 }
 
 func (i *ItemServiceImpl) FindAll() (*[]models.Item, error) {

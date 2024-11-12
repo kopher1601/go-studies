@@ -12,6 +12,7 @@ type ItermController interface {
 	FindAll(ctx *gin.Context)
 	FindByID(ctx *gin.Context)
 	Create(ctx *gin.Context)
+	Update(ctx *gin.Context)
 }
 
 func NewItemController(service services.ItemService) ItermController {
@@ -20,6 +21,29 @@ func NewItemController(service services.ItemService) ItermController {
 
 type ItemControllerImpl struct {
 	service services.ItemService
+}
+
+func (i *ItemControllerImpl) Update(ctx *gin.Context) {
+	itemID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item id"})
+		return
+	}
+
+	var input dto.UpdateItemInput
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	updatedItem, err := i.service.Update(uint(itemID), input)
+	if err != nil {
+		if err.Error() == "Item not found" {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected error"})
+	}
+	ctx.JSON(http.StatusOK, gin.H{"data": updatedItem})
 }
 
 func (i *ItemControllerImpl) Create(ctx *gin.Context) {
