@@ -70,13 +70,24 @@ func NewItemRepositoryImpl(db *gorm.DB) ItemRepository {
 }
 
 func (i *ItemRepositoryImpl) FindAll() (*[]models.Item, error) {
-	//TODO implement me
-	panic("implement me")
+	var items []models.Item
+	result := i.db.Find(&items)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &items, nil
 }
 
 func (i *ItemRepositoryImpl) FindById(itemID uint) (*models.Item, error) {
-	//TODO implement me
-	panic("implement me")
+	var item models.Item
+	result := i.db.First(&item, itemID)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors.New("item not found")
+		}
+		return nil, result.Error
+	}
+	return &item, nil
 }
 
 func (i *ItemRepositoryImpl) Create(newItem models.Item) (*models.Item, error) {
@@ -88,11 +99,22 @@ func (i *ItemRepositoryImpl) Create(newItem models.Item) (*models.Item, error) {
 }
 
 func (i *ItemRepositoryImpl) Update(updateItem models.Item) (*models.Item, error) {
-	//TODO implement me
-	panic("implement me")
+	result := i.db.Save(&updateItem)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &updateItem, nil
 }
 
 func (i *ItemRepositoryImpl) Delete(itemID uint) error {
-	//TODO implement me
-	panic("implement me")
+	deleteItem, err := i.FindById(itemID)
+	if err != nil {
+		return err
+	}
+
+	result := i.db.Delete(deleteItem)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
