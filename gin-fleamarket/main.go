@@ -23,6 +23,7 @@ func main() {
 	r := gin.Default()
 	authRouter := r.Group("/auth")
 	authRouter.POST("/signup", authController.Signup)
+	authRouter.POST("/login", authController.Login)
 
 	itemRouter := r.Group("/items")
 	itemRouter.GET("", itemController.FindAll)
