@@ -16,7 +16,13 @@ func main() {
 	itemService := services.NewItemService(itemRepository)
 	itemController := controllers.NewItemController(itemService)
 
+	authRepository := repositories.NewAuthRepository(db)
+	authService := services.NewAuthService(authRepository)
+	authController := controllers.NewAuthController(authService)
+
 	r := gin.Default()
+	authRouter := r.Group("/auth")
+	authRouter.POST("/signup", authController.Signup)
 
 	itemRouter := r.Group("/items")
 	itemRouter.GET("", itemController.FindAll)
