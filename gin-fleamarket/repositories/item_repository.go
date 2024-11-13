@@ -8,10 +8,10 @@ import (
 
 type ItemRepository interface {
 	FindAll() (*[]models.Item, error)
-	FindById(itemID uint) (*models.Item, error)
+	FindById(itemID uint, userID uint) (*models.Item, error)
 	Create(newItem models.Item) (*models.Item, error)
 	Update(updateItem models.Item) (*models.Item, error)
-	Delete(itemID uint) error
+	Delete(itemID uint, userID uint) error
 }
 
 func NewItemRepository(items []models.Item) ItemRepository {
@@ -22,7 +22,7 @@ type ItemMemoryRepository struct {
 	items []models.Item
 }
 
-func (i *ItemMemoryRepository) Delete(itemID uint) error {
+func (i *ItemMemoryRepository) Delete(itemID uint, userID uint) error {
 	for idx, v := range i.items {
 		if v.ID == itemID {
 			i.items = append(i.items[:idx], i.items[idx+1:]...)
@@ -46,9 +46,9 @@ func (i *ItemMemoryRepository) FindAll() (*[]models.Item, error) {
 	return &i.items, nil
 }
 
-func (i *ItemMemoryRepository) FindById(itemId uint) (*models.Item, error) {
+func (i *ItemMemoryRepository) FindById(itemID uint, userID uint) (*models.Item, error) {
 	for _, item := range i.items {
-		if item.ID == itemId {
+		if item.ID == itemID {
 			return &item, nil
 		}
 	}
@@ -78,9 +78,9 @@ func (i *ItemRepositoryImpl) FindAll() (*[]models.Item, error) {
 	return &items, nil
 }
 
-func (i *ItemRepositoryImpl) FindById(itemID uint) (*models.Item, error) {
+func (i *ItemRepositoryImpl) FindById(itemID uint, userID uint) (*models.Item, error) {
 	var item models.Item
-	result := i.db.First(&item, itemID)
+	result := i.db.First(&item, "id = ? and user_id = ?", itemID, userID)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors.New("item not found")
@@ -106,8 +106,8 @@ func (i *ItemRepositoryImpl) Update(updateItem models.Item) (*models.Item, error
 	return &updateItem, nil
 }
 
-func (i *ItemRepositoryImpl) Delete(itemID uint) error {
-	deleteItem, err := i.FindById(itemID)
+func (i *ItemRepositoryImpl) Delete(itemID uint, userID uint) error {
+	deleteItem, err := i.FindById(itemID, userID)
 	if err != nil {
 		return err
 	}
