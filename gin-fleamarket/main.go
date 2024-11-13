@@ -6,6 +6,7 @@ import (
 	"gin-fleamarket/middlewares"
 	"gin-fleamarket/repositories"
 	"gin-fleamarket/services"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,6 +23,8 @@ func main() {
 	authController := controllers.NewAuthController(authService)
 
 	r := gin.Default()
+	r.Use(cors.Default())
+
 	authRouter := r.Group("/auth")
 	authRouter.POST("/signup", authController.Signup)
 	authRouter.POST("/login", authController.Login)
