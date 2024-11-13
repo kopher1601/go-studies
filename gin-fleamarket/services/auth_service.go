@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"gin-fleamarket/models"
 	"gin-fleamarket/repositories"
 	"github.com/golang-jwt/jwt/v5"
@@ -12,6 +13,7 @@ import (
 type AuthService interface {
 	Signup(email, password string) error
 	Login(email, password string) (*string, error)
+	GetUserFromToken(tokenString string) (*models.User, error)
 }
 
 func NewAuthService(repository repositories.AuthRepository) AuthService {
@@ -20,6 +22,31 @@ func NewAuthService(repository repositories.AuthRepository) AuthService {
 
 type authService struct {
 	repository repositories.AuthRepository
+}
+
+func (a *authService) GetUserFromToken(tokenString string) (*models.User, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("SECRET_KEY")), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var user *models.User
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		if float64(time.Now().Unix()) > claims["exp"].(float64) {
+			return nil, jwt.ErrTokenExpired
+		}
+
+		user, err = a.repository.FindUser(claims["email"].(string))
+		if err != nil {
+			return nil, err
+		}
+	}
+	return user, nil
 }
 
 func (a *authService) Login(email, password string) (*string, error) {
