@@ -90,3 +90,18 @@ func TestCreateUser(t *testing.T) {
 	assert.Equal(id, u2.ID)
 	assert.Equal(u.FirstName, u2.FirstName)
 }
+
+func TestDeleteUser(t *testing.T) {
+	assert := assert.New(t)
+
+	ts := httptest.NewServer(NewHandler())
+	defer ts.Close()
+
+	req, _ := http.NewRequest(http.MethodDelete, ts.URL+"/users/1", nil)
+	resp, err := http.DefaultClient.Do(req)
+	assert.NoError(err)
+	assert.Equal(http.StatusOK, resp.StatusCode)
+
+	data, _ := io.ReadAll(resp.Body)
+	assert.Contains(string(data), "No User ID :1")
+}
