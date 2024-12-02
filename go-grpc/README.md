@@ -73,3 +73,41 @@ message Person {
 - `=` は タグ番号を割り当てるだけ
     - `[フィールド型][フィールド名] = [タグ番号]`
     - `int32 id = 2;`
+
+## Scalar Value Types
+- https://protobuf.dev/programming-guides/proto3/#scalar
+
+## Tag
+
+- Protocol Buffersではフィールドはフィールド名ではなく、タグ番号によって識別される
+- 重複は許されず、一意である必要がある
+- タグの最小値１、最大値`2^29-1(536,870,911)`
+- `19000 ~ 19999`はProtocol Buffersの予約番号のため使用不可
+- 1 ~ 15 番までは `1byte` で表すことが出来るため、よく使うフィールドには1 ~ 15番を割り当てる
+- タグは連番にする必要はないので、あまり使わないフィールドはあえて16番以後を割り当てることも可能
+- タグ番号を予約するなど、安全にProtocol Buffersを使用する方法も用意されている
+
+## Enum (列挙型)
+
+- キーワードは`enum`を使う
+- タグ番号が１からではなく０から始まる
+- 番号のスキップはできない
+- 0番は `_UNKNOWN` におくのが慣例
+
+```protobuf
+syntax = "proto3";
+
+message Employee {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
+  Occupation occupation = 4;
+}
+
+enum Occupation {
+  OCCUPATION_UNKNOWN = 0;
+  ENGINEER = 1;
+  DESIGNER = 2;
+  MANAGER = 3;
+}
+```
