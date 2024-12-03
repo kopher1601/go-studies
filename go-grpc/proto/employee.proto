@@ -1,5 +1,9 @@
 syntax = "proto3";
 
+package employee;
+
+import "proto/date.proto";
+
 message Employee {
   int32 id = 1;
   string name = 2;
@@ -11,6 +15,7 @@ message Employee {
     string text = 7;
     Video video = 8;
   }
+  date.Date birthday = 9;
 }
 
 enum Occupation {
