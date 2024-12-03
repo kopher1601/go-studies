@@ -111,3 +111,30 @@ enum Occupation {
   MANAGER = 3;
 }
 ```
+## その他フィールド
+```protobuf
+syntax = "proto3";
+
+message Employee {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
+  Occupation occupation = 4;
+  repeated string phone_number = 5; // 配列
+  map<string, Project> project = 6; // Map, Mapにはrepeatedを付けるのはできない
+  oneof profile { // 複数のどれかの一つを持つ、またrepeatedを付けるのはできない
+    string text = 7;
+    Video video = 8;
+  }
+}
+
+enum Occupation {
+  OCCUPATION_UNKNOWN = 0;
+  ENGINEER = 1;
+  DESIGNER = 2;
+  MANAGER = 3;
+}
+
+message Project {}
+message Video {}
+```
