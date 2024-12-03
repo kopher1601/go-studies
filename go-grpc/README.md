@@ -162,3 +162,31 @@ message Company {
   message Project {}
 }
 ```
+## Compile
+
+- protoファイルのimport分のパスを特定する
+- 複数の箇所からprotoファイルをインポートする必要がある場合、コロン区切りで複数のパスを記述することが可能
+- `-I` オプションを省略した場合は、カレントディレクトリが設定される
+
+```protobuf
+// -I{PATH}, --proto_path={PATH}
+	protoc -I./test:./dev 
+```
+
+### 各言語に変換するためのオプション
+
+- オプションによって、どの言語に変換するかを決定する
+- Go言語のオプションはプラグインで追加する必要がある
+
+```protobuf
+--go_out=OUT_DIR
+--cpp_out=OUT_DIR
+--ruby_out=OUT_DIR
+```
+
+### コンパイルするファイルの指定
+
+```protobuf
+// 複数指定
+protoc -I. --go_out=. proto/employee.proto proto/date.proto
+```
