@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package employee;
 
+// 変換後の go ファイルのpackage
+option go_package = "./pb";
+
 import "proto/date.proto";
 
 message Employee {
