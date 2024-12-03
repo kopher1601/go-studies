@@ -138,3 +138,27 @@ enum Occupation {
 message Project {}
 message Video {}
 ```
+## デフォルト値
+
+定義したmessageでデータをやり取りする際に、定義したフィールドがセットされていない場合、そのフィールドのデフォルト値が設定される。
+
+デフォルト値は型によって決められている
+
+- string : 空の文字列
+- bytes : 空のbyte
+- bool : false
+- 整数型・浮動小数点数 : 0
+- 列挙型 : タグ番号の0の値
+- repeated : 空のリスト
+## messageのnest
+```protobuf
+
+message Employee {
+  int32 id = 1;
+  map<string, Company.Project> project = 2;
+}
+// message nest
+message Company {
+  message Project {}
+}
+```
