@@ -190,3 +190,17 @@ message Company {
 // 複数指定
 protoc -I. --go_out=. proto/employee.proto proto/date.proto
 ```
+## JSON Mapping
+
+```go
+m := jsonpb.Marshaler{}
+out, err := m.MarshalToString(employee) // json stringに変換
+if err != nil {
+	log.Fatalln("Can't marshal employee:", err)
+}
+
+readEmployee := &pb.Employee{}
+if err := jsonpb.UnmarshalString(out, readEmployee); err != nil {
+	log.Fatalln("Can't unmarshal employee:", err)
+}
+```

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"github.com/golang/protobuf/jsonpb"
 	"go-grpc/pb"
-	"google.golang.org/protobuf/proto"
+	//"google.golang.org/protobuf/proto"
 	"log"
-	"os"
+	//"os"
 )
 
 func main() {
@@ -27,25 +27,37 @@ func main() {
 	}
 
 	// serialize
-	binData, err := proto.Marshal(employee)
-	if err != nil {
-		log.Fatalln("Can't serialize", err)
-	}
+	//binData, err := proto.Marshal(employee)
+	//if err != nil {
+	//	log.Fatalln("Can't serialize", err)
+	//}
+	//
+	//if err := os.WriteFile("test.bin", binData, 0666); err != nil {
+	//	log.Fatalln("Can't write", err)
+	//}
+	//
+	//in, err := os.ReadFile("test.bin")
+	//if err != nil {
+	//	log.Fatalln("Can't read", err)
+	//}
+	//
+	//readEmployee := &pb.Employee{}
+	//err = proto.Unmarshal(in, readEmployee)
+	//if err != nil {
+	//	log.Fatalln("Can't deserialize", err)
+	//}
+	//
+	//fmt.Println(readEmployee)
 
-	if err := os.WriteFile("test.bin", binData, 0666); err != nil {
-		log.Fatalln("Can't write", err)
-	}
-
-	in, err := os.ReadFile("test.bin")
+	m := jsonpb.Marshaler{}
+	out, err := m.MarshalToString(employee) // json stringに変換
 	if err != nil {
-		log.Fatalln("Can't read", err)
+		log.Fatalln("Can't marshal employee:", err)
 	}
+	//fmt.Println(out)
 
 	readEmployee := &pb.Employee{}
-	err = proto.Unmarshal(in, readEmployee)
-	if err != nil {
-		log.Fatalln("Can't deserialize", err)
+	if err := jsonpb.UnmarshalString(out, readEmployee); err != nil {
+		log.Fatalln("Can't unmarshal employee:", err)
 	}
-
-	fmt.Println(readEmployee)
 }
