@@ -204,3 +204,39 @@ if err := jsonpb.UnmarshalString(out, readEmployee); err != nil {
 	log.Fatalln("Can't unmarshal employee:", err)
 }
 ```
+# gRPCとは
+
+Googleによって2015年にオープンソース化されたRPC(Remote Procedure Call)のためのプロトコル
+
+## RPC(Remote Procedure Call)とは
+
+- Remote = 遠隔地 (リモート) サーバーの
+- Procedure = 手続き (メソッド) を
+- Call = 呼び出す (実行する)
+- ネットワーク上の他の端末と通信するための仕組み
+- REST APIのようにパスやメソッドを指定する必要はなく、メソッド名と引数を指定する
+- gRPC以外にJSON-RPCなどがあるが、今はgRPCがデファクトスタンダード
+
+## gRPCの特徴
+
+- データフォーマットにProtocol Bufferを使用
+  - バイナリにシリアライズすることで送信データ量が減り高速な通信を実現
+  - 型付けされたデータ転送が可能
+- IDL (Protocol Buffers) からサーバー側・クライアント側に必要なソースコードを生成
+- 通信には HTTP/2 を使用
+- 特定の言語やプラットフォームに依存しない
+
+## gRPCが適したケース
+
+- Microservice間の通信
+  - 複数の言語やプラットフォームで構成される可能性がある
+  - バックエンド間であればgRPCの恩恵が多く得られる
+- モバイルユーザーが利用するサービス
+  - 通信量が削減できるため、通信容量制限にかかりにくい
+- 速度が求められる場合
+
+## gRPCの開発の流れ
+
+1. protoファイルの作成
+2. protoファイルをコンパイルしてサーバー・クライアントの雛形(hinagata, 모형, 양식, 형식)コードを作成
+3. 雛形コードを使用してサーバー・クライアントを実装
