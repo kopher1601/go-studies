@@ -241,6 +241,77 @@ Googleによって2015年にオープンソース化されたRPC(Remote Procedur
 2. protoファイルをコンパイルしてサーバー・クライアントの雛形(hinagata, 모형, 양식, 형식)コードを作成
 3. 雛形コードを使用してサーバー・クライアントを実装
 
+## gRPCの通信方式
+
+- Unary RPC
+- Server Streaming RPC
+- Client Streaming RPC
+- Bidirectional Streaming RPC
+
+### Unary RPC
+
+- １リクエスト１レスポンスの方式
+- 通常の関数コールのように扱うことができる
+- 用途
+  - APIなど
+
+```protobuf
+message SayHelloRequest {}
+message SayHelloResponse {}
+
+service Greeter {
+	rpc SayHello (SayHelloRequest) returns (SayHelloResponse);
+}
+```
+
+### Server Streaming RPC
+
+- １リクエスト・複数レスポンス方式
+- クライアントはサーバーから送信完了の信号が送信されるまでストリームのメッセージを読み続ける
+- 用途
+  - サーバーからのプッシュ通知など
+
+```protobuf
+message SayHelloRequest {}
+message SayHelloResponse {}
+
+service Greeter {
+	rpc SayHello (SayHelloRequest) returns (stream SayHelloResponse);
+}
+```
+
+### Client Streaming RPC
+
+- 複数リクエスト・１レスポンスの方式
+- サーバーはクライアントからリクエスト完了の信号が送信されるまでストリームからメッセージを読み続け、レスポンスを返さない
+- 用途
+  - 大きなファイルのアップロードなど
+
+```protobuf
+message SayHelloRequest {}
+message SayHelloResponse {}
+
+service Greeter {
+	rpc SayHello (stream SayHelloRequest) returns (SayHelloResponse);
+}
+```
+
+### Bidirectional Streaming RPC
+
+- 複数リクエスト・複数レスポンスの方式
+- クライアントとサーバーのストリームが独立しており、リクエストとレスポンスはどのような順序でも良い
+- 用途
+  - チャットやオンライン対戦ゲームなど
+
+```protobuf
+message SayHelloRequest {}
+message SayHelloResponse {}
+
+service Greeter {
+	rpc SayHello (stream SayHelloRequest) returns (stream SayHelloResponse);
+}
+```
+
 # Service とは
 
 - RPC (メソッド) の実装単位
