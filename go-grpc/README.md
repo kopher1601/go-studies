@@ -240,3 +240,21 @@ Googleによって2015年にオープンソース化されたRPC(Remote Procedur
 1. protoファイルの作成
 2. protoファイルをコンパイルしてサーバー・クライアントの雛形(hinagata, 모형, 양식, 형식)コードを作成
 3. 雛形コードを使用してサーバー・クライアントを実装
+
+# Service とは
+
+- RPC (メソッド) の実装単位
+  - サービス内に定義するメソッドがエンドポイントになる
+  - １サービス内に複数のメソッドを定義できる
+- サービス名、メソッド名、引数、戻り値を定義する必要がある
+- コンパイルしてgoファイルに変換すると、インターフェイスとなる
+  - アプリケーション側でこのインターフェイスを実装する
+
+```protobuf
+message SayHelloRequest {}
+message SayHelloResponse {}
+
+service Greeter {
+	rpc SayHello (SayHelloRequest) returns (SayHelloResponse);
+}
+```
