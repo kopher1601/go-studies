@@ -13,10 +13,15 @@ type UserController interface {
 	Signup(c echo.Context) error
 	Login(c echo.Context) error
 	Logout(c echo.Context) error
+	CsrfToken(c echo.Context) error
 }
 
 type userController struct {
 	u usecase.UserUsecase
+}
+
+func NewUserController(u usecase.UserUsecase) UserController {
+	return &userController{u: u}
 }
 
 func (u *userController) Signup(c echo.Context) error {
@@ -67,6 +72,9 @@ func (u *userController) Logout(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func NewUserController(u usecase.UserUsecase) UserController {
-	return &userController{u: u}
+func (u *userController) CsrfToken(c echo.Context) error {
+	token := c.Get("csrf").(string)
+	return c.JSON(http.StatusOK, echo.Map{
+		"csrf_token": token,
+	})
 }
