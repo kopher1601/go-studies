@@ -3,6 +3,7 @@ package usecase
 import (
 	"go-echo/model"
 	"go-echo/repository"
+	"go-echo/validator"
 )
 
 type TaskUsecase interface {
@@ -15,6 +16,11 @@ type TaskUsecase interface {
 
 type taskUsecase struct {
 	tr repository.TaskRepository
+	tv validator.TaskValidator
+}
+
+func NewTaskUsecase(tr repository.TaskRepository, tv validator.TaskValidator) TaskUsecase {
+	return &taskUsecase{tr: tr, tv: tv}
 }
 
 func (t *taskUsecase) GetAllTasks(userId uint) ([]model.TaskResponse, error) {
@@ -49,6 +55,10 @@ func (t *taskUsecase) GetTaskById(userId, taskId uint) (model.TaskResponse, erro
 }
 
 func (t *taskUsecase) CreateTask(task model.Task) (model.TaskResponse, error) {
+	if err := t.tv.TaskValidate(task); err != nil {
+		return model.TaskResponse{}, err
+	}
+
 	if err := t.tr.CreateTask(&task); err != nil {
 		return model.TaskResponse{}, err
 	}
@@ -62,6 +72,10 @@ func (t *taskUsecase) CreateTask(task model.Task) (model.TaskResponse, error) {
 }
 
 func (t *taskUsecase) UpdateTask(task model.Task, userId, taskId uint) (model.TaskResponse, error) {
+	if err := t.tv.TaskValidate(task); err != nil {
+		return model.TaskResponse{}, err
+	}
+
 	if err := t.tr.UpdateTask(&task, userId, taskId); err != nil {
 		return model.TaskResponse{}, err
 	}
@@ -79,8 +93,4 @@ func (t *taskUsecase) DeleteTask(userId, taskId uint) error {
 		return err
 	}
 	return nil
-}
-
-func NewTaskUsecase(tr repository.TaskRepository) TaskUsecase {
-	return &taskUsecase{tr: tr}
 }

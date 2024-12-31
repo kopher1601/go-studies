@@ -4,6 +4,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"go-echo/model"
 	"go-echo/repository"
+	"go-echo/validator"
 	"golang.org/x/crypto/bcrypt"
 	"os"
 	"time"
@@ -16,9 +17,18 @@ type UserUsecase interface {
 
 type userUsecase struct {
 	ur repository.UserRepository
+	uv validator.UserValidator
+}
+
+func NewUserUsecase(ur repository.UserRepository, uv validator.UserValidator) UserUsecase {
+	return &userUsecase{ur: ur, uv: uv}
 }
 
 func (u *userUsecase) Signup(user model.User) (model.UserResponse, error) {
+	if err := u.uv.UserValidate(user); err != nil {
+		return model.UserResponse{}, err
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.MinCost)
 	if err != nil {
 		return model.UserResponse{}, err
@@ -38,6 +48,10 @@ func (u *userUsecase) Signup(user model.User) (model.UserResponse, error) {
 }
 
 func (u *userUsecase) Login(user model.User) (string, error) {
+	if err := u.uv.UserValidate(user); err != nil {
+		return "", err
+	}
+
 	storedUser := model.User{}
 	if err := u.ur.GetUserByEmail(&storedUser, user.Email); err != nil {
 		return "", err
@@ -54,8 +68,4 @@ func (u *userUsecase) Login(user model.User) (string, error) {
 		return "", err
 	}
 	return tokenString, nil
-}
-
-func NewUserUsecase(ur repository.UserRepository) UserUsecase {
-	return &userUsecase{ur: ur}
 }
