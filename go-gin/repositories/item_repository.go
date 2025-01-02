@@ -8,6 +8,7 @@ import (
 type ItemRepository interface {
 	FindAll() (*[]models.Item, error)
 	FindById(itemId uint) (*models.Item, error)
+	Create(newItem models.Item) (*models.Item, error)
 }
 
 type itemRepository struct {
@@ -29,4 +30,10 @@ func (i *itemRepository) FindById(itemId uint) (*models.Item, error) {
 		}
 	}
 	return nil, errors.New("Item not found")
+}
+
+func (i *itemRepository) Create(newItem models.Item) (*models.Item, error) {
+	newItem.ID = uint(len(i.items) + 1)
+	i.items = append(i.items, newItem)
+	return &newItem, nil
 }

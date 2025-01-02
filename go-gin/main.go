@@ -20,7 +20,11 @@ func main() {
 	itemController := controllers.NewItemController(itemService)
 
 	r := gin.Default()
-	r.GET("/items", itemController.FindAll)
-	r.GET("/items/:id", itemController.FindById)
+
+	itemsRouter := r.Group("/items")
+	itemsRouter.GET("/", itemController.FindAll)
+	itemsRouter.GET("/:id", itemController.FindById)
+	itemsRouter.POST("/", itemController.Create)
+
 	r.Run()
 }
