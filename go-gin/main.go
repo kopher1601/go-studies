@@ -25,6 +25,7 @@ func main() {
 	itemsRouter.GET("/", itemController.FindAll)
 	itemsRouter.GET("/:id", itemController.FindById)
 	itemsRouter.POST("/", itemController.Create)
+	itemsRouter.PUT("/:id", itemController.Update)
 
 	r.Run()
 }
