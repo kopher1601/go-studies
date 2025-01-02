@@ -2,7 +2,10 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"go-gin/controllers"
 	"go-gin/models"
+	"go-gin/repositories"
+	"go-gin/services"
 )
 
 func main() {
@@ -12,11 +15,12 @@ func main() {
 		{ID: 3, Name: "商品3", Price: 3000, Description: "説明3", SoldOut: false},
 	}
 
+	itemRepository := repositories.NewItemRepository(items)
+	itemService := services.NewItemService(itemRepository)
+	itemController := controllers.NewItemController(itemService)
+
 	r := gin.Default()
-	r.GET("/sample", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	r.GET("/items", itemController.FindAll)
+	r.GET("/items/:id", itemController.FindById)
 	r.Run()
 }
