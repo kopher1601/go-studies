@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go-gin/controllers"
 	"go-gin/infra"
@@ -14,6 +15,7 @@ func main() {
 	db := infra.SetupDB()
 
 	r := gin.Default()
+	r.Use(cors.Default())
 
 	// items
 	itemRepository := repositories.NewItemRepository(db)
