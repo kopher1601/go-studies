@@ -1,64 +1,16 @@
 package repositories
 
 import (
-	"errors"
 	"go-gin/models"
 	"gorm.io/gorm"
 )
 
 type ItemRepository interface {
 	FindAll() (*[]models.Item, error)
-	FindById(itemId uint) (*models.Item, error)
+	FindById(itemId uint, userId uint) (*models.Item, error)
 	Create(newItem models.Item) (*models.Item, error)
 	Update(updateItem models.Item) (*models.Item, error)
-	Delete(itemId uint) error
-}
-
-type memoryItemRepository struct {
-	items []models.Item
-}
-
-func NewMemoryItemRepository(items []models.Item) ItemRepository {
-	return &memoryItemRepository{items: items}
-}
-
-func (i *memoryItemRepository) FindAll() (*[]models.Item, error) {
-	return &i.items, nil
-}
-
-func (i *memoryItemRepository) FindById(itemId uint) (*models.Item, error) {
-	for _, item := range i.items {
-		if item.ID == itemId {
-			return &item, nil
-		}
-	}
-	return nil, errors.New("Item not found")
-}
-
-func (i *memoryItemRepository) Create(newItem models.Item) (*models.Item, error) {
-	newItem.ID = uint(len(i.items) + 1)
-	i.items = append(i.items, newItem)
-	return &newItem, nil
-}
-
-func (i *memoryItemRepository) Update(updateItem models.Item) (*models.Item, error) {
-	for idx, item := range i.items {
-		if item.ID == updateItem.ID {
-			i.items[idx] = updateItem
-			return &i.items[idx], nil
-		}
-	}
-	return nil, errors.New("Unexpected error")
-}
-
-func (i *memoryItemRepository) Delete(itemId uint) error {
-	for idx, item := range i.items {
-		if item.ID == itemId {
-			i.items = append(i.items[:idx], i.items[idx+1:]...)
-			return nil
-		}
-	}
-	return errors.New("Item not found")
+	Delete(itemId uint, userId uint) error
 }
 
 type itemRepository struct {
@@ -78,9 +30,9 @@ func (i *itemRepository) FindAll() (*[]models.Item, error) {
 	return &items, nil
 }
 
-func (i *itemRepository) FindById(itemId uint) (*models.Item, error) {
+func (i *itemRepository) FindById(itemId uint, userId uint) (*models.Item, error) {
 	var item models.Item
-	result := i.db.First(&item, itemId)
+	result := i.db.First(&item, "id = ? AND user_id = ?", itemId, userId)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -103,8 +55,8 @@ func (i *itemRepository) Update(updateItem models.Item) (*models.Item, error) {
 	return &updateItem, nil
 }
 
-func (i *itemRepository) Delete(itemId uint) error {
-	item, err := i.FindById(itemId)
+func (i *itemRepository) Delete(itemId uint, userId uint) error {
+	item, err := i.FindById(itemId, userId)
 	if err != nil {
 		return err
 	}

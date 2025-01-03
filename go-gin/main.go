@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go-gin/controllers"
 	"go-gin/infra"
+	"go-gin/middlewares"
 	"go-gin/repositories"
 	"go-gin/services"
 )
@@ -19,17 +20,18 @@ func main() {
 	itemService := services.NewItemService(itemRepository)
 	itemController := controllers.NewItemController(itemService)
 
-	itemsRouter := r.Group("/items")
-	itemsRouter.GET("/", itemController.FindAll)
-	itemsRouter.GET("/:id", itemController.FindById)
-	itemsRouter.POST("/", itemController.Create)
-	itemsRouter.PUT("/:id", itemController.Update)
-	itemsRouter.DELETE("/:id", itemController.Delete)
-
 	// auth
 	authRepository := repositories.NewAuthRepository(db)
 	authService := services.NewAuthService(authRepository)
 	authController := controllers.NewAuthController(authService)
+
+	itemsRouter := r.Group("/items")
+	itemsRouterWithAuth := r.Group("/items", middlewares.AuthMiddleware(authService))
+	itemsRouter.GET("/", itemController.FindAll)
+	itemsRouterWithAuth.GET("/:id", itemController.FindById)
+	itemsRouterWithAuth.POST("/", itemController.Create)
+	itemsRouterWithAuth.PUT("/:id", itemController.Update)
+	itemsRouterWithAuth.DELETE("/:id", itemController.Delete)
 
 	authRouter := r.Group("/auth")
 	authRouter.POST("/signup", authController.Signup)
