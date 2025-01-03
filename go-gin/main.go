@@ -11,18 +11,13 @@ import (
 func main() {
 	infra.Initialize()
 	db := infra.SetupDB()
-	//items := []models.Item{
-	//	{ID: 1, Name: "商品1", Price: 1000, Description: "説明1", SoldOut: false},
-	//	{ID: 2, Name: "商品2", Price: 2000, Description: "説明2", SoldOut: true},
-	//	{ID: 3, Name: "商品3", Price: 3000, Description: "説明3", SoldOut: false},
-	//}
 
-	//itemRepository := repositories.NewMemoryItemRepository(items)
+	r := gin.Default()
+
+	// items
 	itemRepository := repositories.NewItemRepository(db)
 	itemService := services.NewItemService(itemRepository)
 	itemController := controllers.NewItemController(itemService)
-
-	r := gin.Default()
 
 	itemsRouter := r.Group("/items")
 	itemsRouter.GET("/", itemController.FindAll)
@@ -30,6 +25,14 @@ func main() {
 	itemsRouter.POST("/", itemController.Create)
 	itemsRouter.PUT("/:id", itemController.Update)
 	itemsRouter.DELETE("/:id", itemController.Delete)
+
+	// auth
+	authRepository := repositories.NewAuthRepository(db)
+	authService := services.NewAuthService(authRepository)
+	authController := controllers.NewAuthController(authService)
+
+	authRouter := r.Group("/auth")
+	authRouter.POST("/signup", authController.Signup)
 
 	r.Run()
 }

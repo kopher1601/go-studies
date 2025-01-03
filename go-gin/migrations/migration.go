@@ -10,7 +10,7 @@ func main() {
 	infra.Initialize()
 	db := infra.SetupDB()
 
-	if err := db.AutoMigrate(&models.Item{}); err != nil {
+	if err := db.AutoMigrate(&models.Item{}, &models.User{}); err != nil {
 		panic(fmt.Sprintf("failed to auto migrate items: %s", err))
 	}
 }
