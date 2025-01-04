@@ -8,12 +8,10 @@ import (
 	"go-gin/middlewares"
 	"go-gin/repositories"
 	"go-gin/services"
+	"gorm.io/gorm"
 )
 
-func main() {
-	infra.Initialize()
-	db := infra.SetupDB()
-
+func setupRouter(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 	r.Use(cors.Default())
 
@@ -29,15 +27,23 @@ func main() {
 
 	itemsRouter := r.Group("/items")
 	itemsRouterWithAuth := r.Group("/items", middlewares.AuthMiddleware(authService))
-	itemsRouter.GET("/", itemController.FindAll)
+	itemsRouter.GET("", itemController.FindAll)
 	itemsRouterWithAuth.GET("/:id", itemController.FindById)
-	itemsRouterWithAuth.POST("/", itemController.Create)
+	itemsRouterWithAuth.POST("", itemController.Create)
 	itemsRouterWithAuth.PUT("/:id", itemController.Update)
 	itemsRouterWithAuth.DELETE("/:id", itemController.Delete)
 
 	authRouter := r.Group("/auth")
 	authRouter.POST("/signup", authController.Signup)
 	authRouter.POST("/login", authController.Login)
+
+	return r
+}
+
+func main() {
+	infra.Initialize()
+	db := infra.SetupDB()
+	r := setupRouter(db)
 
 	r.Run()
 }
