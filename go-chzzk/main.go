@@ -1,9 +1,20 @@
 package main
 
-import "go-chzzk/network"
+import (
+	"flag"
+	"fmt"
+	"go-chzzk/config"
+)
+
+var pathFlag = flag.String("config", "./config.toml", "config set")
+var port = flag.String("port", "1010", "port set")
 
 func main() {
-	n := network.NewServer()
+	flag.Parse()
 
-	n.StartServer()
+	c := config.NewConfig(*pathFlag)
+
+	fmt.Println(c)
+	//n := network.NewServer()
+	//n.StartServer()
 }
