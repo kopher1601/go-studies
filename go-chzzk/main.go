@@ -21,7 +21,7 @@ func main() {
 		panic(err)
 	} else {
 		service := service.NewService(rep)
-		network.NewServer(service, rep)
+		network.NewServer(service, rep, *port)
 		fmt.Println(rep)
 	}
 

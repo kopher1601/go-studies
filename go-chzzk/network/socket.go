@@ -35,7 +35,7 @@ func NewRoom() *Room {
 	}
 }
 
-func (r *Room) RunInit() {
+func (r *Room) Run() {
 	// Room 에 있는 모든 채널값을 받는 역할
 	for {
 		select {
@@ -53,7 +53,7 @@ func (r *Room) RunInit() {
 	}
 }
 
-func (r *Room) SocketServe(c *gin.Context) {
+func (r *Room) ServeHTTP(c *gin.Context) {
 	socket, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		panic(err)

@@ -31,9 +31,9 @@ func NewServer(service *service.Service, repository *repository.Repository, port
 	n.engine.Use(cors.Default())
 
 	r := NewRoom()
-	go r.RunInit()
+	go r.Run()
 
-	n.engine.GET("/room", r.SocketServe)
+	n.engine.GET("/room", r.ServeHTTP)
 
 	return n
 }
