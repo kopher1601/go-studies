@@ -3,15 +3,28 @@ package network
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"go-chzzk/repository"
+	"go-chzzk/service"
 	"log"
 )
 
-type Network struct {
+type Server struct {
 	engine *gin.Engine
+
+	service    *service.Service
+	repository *repository.Repository
+
+	port string
+	ip   string
 }
 
-func NewServer() *Network {
-	n := &Network{engine: gin.New()}
+func NewServer(service *service.Service, repository *repository.Repository, port string) *Server {
+	n := &Server{
+		engine:     gin.New(),
+		service:    service,
+		repository: repository,
+		port:       port,
+	}
 
 	n.engine.Use(gin.Logger())
 	n.engine.Use(gin.Recovery())
@@ -25,7 +38,7 @@ func NewServer() *Network {
 	return n
 }
 
-func (n *Network) StartServer() error {
+func (n *Server) StartServer() error {
 	log.Println("Starting server...")
 	return n.engine.Run(":8080")
 }
