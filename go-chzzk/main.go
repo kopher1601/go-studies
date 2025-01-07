@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"go-chzzk/config"
 	"go-chzzk/network"
 	"go-chzzk/repository"
@@ -14,18 +13,12 @@ var port = flag.String("port", "1010", "port set")
 
 func main() {
 	flag.Parse()
-
 	c := config.NewConfig(*pathFlag)
 
 	if rep, err := repository.NewRepository(c); err != nil {
 		panic(err)
 	} else {
-		service := service.NewService(rep)
-		network.NewServer(service, rep, *port)
-		fmt.Println(rep)
+		s := network.NewServer(service.NewService(rep), *port)
+		s.StartServer()
 	}
-
-	fmt.Println(c)
-	//n := network.NewServer()
-	//n.StartServer()
 }

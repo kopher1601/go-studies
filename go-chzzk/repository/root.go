@@ -2,9 +2,11 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	_ "github.com/go-sql-driver/mysql"
 	"go-chzzk/config"
 	"go-chzzk/types/schema"
+	"log"
 	"strings"
 )
 
@@ -28,6 +30,12 @@ func NewRepository(cfg *config.Config) (*Repository, error) {
 	} else {
 		return r, nil
 	}
+}
+
+func (r *Repository) InsertChatting(user, message, roomName string) error {
+	log.Println("Insert chatting using wss", "from", user, "message", message, "room", roomName)
+	_, err := r.db.Exec("insert into chatting.chat(room, name, message) values(?, ?, ?)", roomName, user, message)
+	return err
 }
 
 func (r Repository) GetChatList(roomName string) ([]*schema.Chat, error) {
@@ -97,6 +105,9 @@ func (r *Repository) Room(name string) (*schema.Room, error) {
 	qs := query([]string{"select * from", room, "where name = ?"})
 
 	err := r.db.QueryRow(qs, name).Scan(&d.ID, &d.Name, &d.CreatedAt, &d.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
 	return d, err
 }
 
