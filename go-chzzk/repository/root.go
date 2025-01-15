@@ -25,11 +25,13 @@ func NewRepository(cfg *config.Config) (*Repository, error) {
 	r := &Repository{cfg: cfg}
 	var err error
 
-	if r.db, err = sql.Open(cfg.DB.Database, cfg.DB.URL); err != nil {
+	db, err := sql.Open(cfg.DB.Database, cfg.DB.URL)
+	if err != nil {
 		return nil, err
-	} else {
-		return r, nil
 	}
+	r.db = db
+
+	return r, nil
 }
 
 func (r *Repository) InsertChatting(user, message, roomName string) error {
