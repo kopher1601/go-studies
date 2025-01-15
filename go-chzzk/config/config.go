@@ -19,11 +19,14 @@ type Config struct {
 func NewConfig(path string) *Config {
 	c := &Config{}
 
-	if f, err := os.Open(path); err != nil {
+	f, err := os.Open(path)
+	if err != nil {
 		panic(err)
-	} else if err = toml.NewDecoder(f).Decode(c); err != nil {
-		panic(err)
-	} else {
-		return c
 	}
+
+	if err := toml.NewDecoder(f).Decode(c); err != nil {
+		panic(err)
+	}
+
+	return c
 }
