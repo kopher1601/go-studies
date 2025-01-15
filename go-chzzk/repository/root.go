@@ -40,60 +40,54 @@ func (r *Repository) InsertChatting(user, message, roomName string) error {
 	return err
 }
 
-func (r Repository) GetChatList(roomName string) ([]*schema.Chat, error) {
+func (r *Repository) GetChatList(roomName string) ([]*schema.Chat, error) {
 	qs := query([]string{"select * from", chat, "where room = ? order by `when` desc limit 10"})
 
-	if cursor, err := r.db.Query(qs, roomName); err != nil {
+	cursor, err := r.db.Query(qs, roomName)
+	if err != nil {
 		return nil, err
-	} else {
-		defer cursor.Close()
-
-		var result []*schema.Chat
-
-		for cursor.Next() {
-			d := &schema.Chat{}
-
-			if err = cursor.Scan(&d.ID, &d.Room, &d.Name, &d.Message, &d.When); err != nil {
-				return nil, err
-			} else {
-				result = append(result, d)
-			}
-		}
-
-		if len(result) == 0 {
-			return []*schema.Chat{}, nil
-		} else {
-			return result, nil
-		}
 	}
+	defer cursor.Close()
+
+	var result []*schema.Chat
+	for cursor.Next() {
+		d := &schema.Chat{}
+
+		if err := cursor.Scan(&d.ID, &d.Room, &d.Name, &d.Message, &d.When); err != nil {
+			return nil, err
+		}
+		result = append(result, d)
+	}
+
+	if len(result) == 0 {
+		return []*schema.Chat{}, nil
+	}
+	return result, nil
 }
 
-func (r Repository) RoomList() ([]*schema.Room, error) {
+func (r *Repository) RoomList() ([]*schema.Room, error) {
 	qs := query([]string{"select * from", room})
 
-	if cursor, err := r.db.Query(qs); err != nil {
+	cursor, err := r.db.Query(qs)
+	if err != nil {
 		return nil, err
-	} else {
-		defer cursor.Close()
-
-		var result []*schema.Room
-
-		for cursor.Next() {
-			d := &schema.Room{}
-
-			if err = cursor.Scan(&d.ID, &d.Name, &d.CreatedAt, &d.UpdatedAt); err != nil {
-				return nil, err
-			} else {
-				result = append(result, d)
-			}
-		}
-
-		if len(result) == 0 {
-			return []*schema.Room{}, nil
-		} else {
-			return result, nil
-		}
 	}
+	defer cursor.Close()
+
+	var result []*schema.Room
+	for cursor.Next() {
+		d := &schema.Room{}
+
+		if err = cursor.Scan(&d.ID, &d.Name, &d.CreatedAt, &d.UpdatedAt); err != nil {
+			return nil, err
+		}
+		result = append(result, d)
+	}
+
+	if len(result) == 0 {
+		return []*schema.Room{}, nil
+	}
+	return result, nil
 }
 
 func (r *Repository) MakeRoom(name string) error {
