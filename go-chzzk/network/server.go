@@ -14,10 +14,9 @@ func registerServer(server *Server) {
 	a := &api{server: server}
 
 	server.engine.GET("/room-list", a.roomList)
+	server.engine.POST("/make-room", a.makeRoom)
 	server.engine.GET("/room", a.room)
 	server.engine.GET("/enter-room", a.enterRoom)
-
-	server.engine.POST("/make-room", a.makeRoom)
 
 	r := NewRoom(server.service)
 	go r.Run()
