@@ -102,7 +102,7 @@ func (r *Repository) Room(name string) (*schema.Room, error) {
 
 	err := r.db.QueryRow(qs, name).Scan(&d.ID, &d.Name, &d.CreatedAt, &d.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, err
 	}
 	return d, err
 }
