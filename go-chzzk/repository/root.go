@@ -5,14 +5,16 @@ import (
 	"errors"
 	_ "github.com/go-sql-driver/mysql"
 	"go-chzzk/config"
+	"go-chzzk/repository/kafka"
 	"go-chzzk/types/schema"
 	"log"
 	"strings"
 )
 
 type Repository struct {
-	cfg *config.Config
-	db  *sql.DB
+	cfg   *config.Config
+	db    *sql.DB
+	kafka *kafka.Kafka
 }
 
 const (
@@ -25,11 +27,14 @@ func NewRepository(cfg *config.Config) (*Repository, error) {
 	r := &Repository{cfg: cfg}
 	var err error
 
-	db, err := sql.Open(cfg.DB.Database, cfg.DB.URL)
+	r.db, err = sql.Open(cfg.DB.Database, cfg.DB.URL)
 	if err != nil {
 		return nil, err
 	}
-	r.db = db
+
+	if r.kafka, err = kafka.NewKafka(cfg); err != nil {
+		return nil, err
+	}
 
 	return r, nil
 }
