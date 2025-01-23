@@ -39,6 +39,11 @@ func NewRepository(cfg *config.Config) (*Repository, error) {
 	return r, nil
 }
 
+func (r Repository) ServerSet(ip string, available bool) error {
+	_, err := r.db.Exec("insert into server_info(`ip`, `available`) values(?, ?) on duplicate key update available = values(`available`)", ip, available)
+	return err
+}
+
 func (r *Repository) InsertChatting(user, message, roomName string) error {
 	log.Println("Insert chatting using wss", "from", user, "message", message, "room", roomName)
 	_, err := r.db.Exec("insert into chatting.chat(room, name, message) values(?, ?, ?)", roomName, user, message)
