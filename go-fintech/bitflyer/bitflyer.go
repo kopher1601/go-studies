@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"io"
 	"log"
 	"net/http"
@@ -19,6 +20,15 @@ type APIClient struct {
 	key        string
 	secret     string
 	httpClient *http.Client
+}
+
+func New(key, secret string) *APIClient {
+	apiClient := &APIClient{
+		key:        key,
+		secret:     secret,
+		httpClient: &http.Client{},
+	}
+	return apiClient
 }
 
 func (api *APIClient) header(method, endpoint string, body []byte) map[string]string {
@@ -70,4 +80,27 @@ func (api *APIClient) doRequest(method, urlPath string, query map[string]string,
 		return nil, err
 	}
 	return body, nil
+}
+
+type Balance struct {
+	CurrentCode string  `json:"current_code"`
+	Amount      float64 `json:"amount"`
+	Available   float64 `json:"available"`
+}
+
+func (api *APIClient) GetBalance() ([]Balance, error) {
+	url := "me/getbalance"
+	resp, err := api.doRequest(http.MethodGet, url, map[string]string{}, nil)
+	log.Printf("url=%s resp=%s", url, string(resp))
+	if err != nil {
+		log.Printf("action=GetBalance err=%s", err.Error())
+		return nil, err
+	}
+	var balances []Balance
+	err = json.Unmarshal(resp, &balances)
+	if err != nil {
+		log.Printf("action=GetBalance err=%s", err.Error())
+		return nil, err
+	}
+	return balances, nil
 }
