@@ -1,8 +1,16 @@
 package main
 
-import "go-zero-to-one/framework"
+import (
+	"go-zero-to-one/controller"
+	"go-zero-to-one/framework"
+)
 
 func main() {
-	engine := &framework.Engine{}
+	engine := framework.NewEngine()
+	router := engine.Router
+
+	router.Get("/lists", controller.ListController)
+	router.Get("/users", controller.UsersController)
+	router.Get("/students", controller.StudentController)
 	engine.Run()
 }
