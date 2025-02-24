@@ -49,7 +49,7 @@ func (t *TreeNode) Search(path string) func(w http.ResponseWriter, r *http.Reque
 	params := strings.Split(path, "/")
 	node := t
 	for _, param := range params {
-		child := t.findChild(param)
+		child := node.findChild(param)
 		if child == nil {
 			return nil
 		}
