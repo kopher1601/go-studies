@@ -29,3 +29,18 @@ func UsersController(ctx *framework.MyContext) {
 func ListItemController(ctx *framework.MyContext) {
 	ctx.WriteString("list item")
 }
+
+func ListItemPictureItemController(ctx *framework.MyContext) {
+	listID := ctx.GetParam(":list_id", "")
+	pictureID := ctx.GetParam(":picture_id", "")
+
+	output := struct {
+		ListID    string `json:"list_id,omitempty"`
+		PictureID string `json:"picture_id,omitempty"`
+	}{
+		ListID:    listID,
+		PictureID: pictureID,
+	}
+
+	ctx.Json(&output)
+}

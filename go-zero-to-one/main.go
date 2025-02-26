@@ -11,6 +11,7 @@ func main() {
 
 	router.Get("/lists", controller.ListController)
 	router.Get("/lists/:list_id", controller.ListItemController)
+	router.Get("/lists/:list_id/pictures/:picture_id", controller.ListItemPictureItemController)
 	router.Get("/users", controller.UsersController)
 	router.Get("/students", controller.StudentController)
 	engine.Run()

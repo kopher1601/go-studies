@@ -3,6 +3,7 @@ package framework
 import (
 	"log"
 	"net/http"
+	"strings"
 )
 
 type Engine struct {
@@ -36,12 +37,16 @@ func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := NewMyContext(w, r)
 	if r.Method == http.MethodGet {
 		path := r.URL.Path
-		handler := e.Router.routingTable.Search(path)
-		if handler == nil {
+		path = strings.TrimSuffix(path, "/")
+		targetNode := e.Router.routingTable.Search(path)
+
+		if targetNode == nil || targetNode.handler == nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		handler(ctx)
+		paramDicts := targetNode.ParseParams(r.URL.Path)
+		ctx.SetParams(paramDicts)
+		targetNode.handler(ctx)
 		return
 	}
 }

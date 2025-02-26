@@ -7,14 +7,16 @@ import (
 )
 
 type MyContext struct {
-	w http.ResponseWriter
-	r *http.Request
+	w      http.ResponseWriter
+	r      *http.Request
+	params map[string]string
 }
 
 func NewMyContext(w http.ResponseWriter, r *http.Request) *MyContext {
 	return &MyContext{
-		w: w,
-		r: r,
+		w:      w,
+		r:      r,
+		params: make(map[string]string),
 	}
 }
 
@@ -46,6 +48,19 @@ func (ctx *MyContext) QueryKey(key string, defaultValue string) string {
 			return defaultValue
 		}
 		return target[len(target)-1]
+	}
+	return defaultValue
+}
+
+func (ctx *MyContext) SetParams(dicts map[string]string) {
+	ctx.params = dicts
+}
+
+func (ctx *MyContext) GetParam(key string, defaultValue string) string {
+	params := ctx.params
+
+	if v, ok := params[key]; ok {
+		return v
 	}
 	return defaultValue
 }
