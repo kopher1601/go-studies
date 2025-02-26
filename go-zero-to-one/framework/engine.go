@@ -22,6 +22,12 @@ type Router struct {
 }
 
 func (r *Router) Get(pathname string, handler func(w http.ResponseWriter, r *http.Request)) error {
+	existedHandler := r.routingTable.Search(pathname)
+
+	if existedHandler != nil {
+		panic("already existed handler")
+	}
+
 	r.routingTable.Insert(pathname, handler)
 	return nil
 }

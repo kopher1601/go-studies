@@ -18,6 +18,10 @@ func Constructor() TreeNode {
 	}
 }
 
+func isGeneral(param string) bool {
+	return strings.HasPrefix(param, ":")
+}
+
 func (t *TreeNode) Insert(path string, handler func(w http.ResponseWriter, r *http.Request)) {
 	node := t
 	params := strings.Split(path, "/")
@@ -47,13 +51,39 @@ func (t *TreeNode) findChild(param string) *TreeNode {
 
 func (t *TreeNode) Search(path string) func(w http.ResponseWriter, r *http.Request) {
 	params := strings.Split(path, "/")
-	node := t
-	for _, param := range params {
-		child := node.findChild(param)
-		if child == nil {
-			return nil
-		}
-		node = child
+
+	result := dfs(t, params)
+	if result == nil {
+		return nil
 	}
-	return node.handler
+
+	return result.handler
+}
+
+func dfs(node *TreeNode, params []string) *TreeNode {
+	currentParam := params[0]
+	isLastParam := len(params) == 1
+
+	for _, child := range node.children {
+		if isLastParam {
+			if isGeneral(child.param) {
+				return child
+			}
+
+			if child.param == currentParam {
+				return child
+			}
+			continue
+		}
+
+		if !isGeneral(child.param) && child.param != currentParam {
+			continue
+		}
+
+		result := dfs(child, params[1:])
+		if result != nil {
+			return result
+		}
+	}
+	return nil
 }

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -27,9 +28,13 @@ func StudentController(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListController(w http.ResponseWriter, r *http.Request) {
-
+	fmt.Fprint(w, "list")
 }
 
 func UsersController(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "user")
+}
 
+func ListItemController(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "list item")
 }
