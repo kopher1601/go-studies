@@ -3,7 +3,9 @@ package framework
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"net/textproto"
 )
 
 type MyContext struct {
@@ -63,4 +65,44 @@ func (ctx *MyContext) GetParam(key string, defaultValue string) string {
 		return v
 	}
 	return defaultValue
+}
+
+func (ctx *MyContext) FormKey(key, defaultName string) string {
+	if ctx.r.Form == nil {
+		ctx.r.ParseMultipartForm(32 << 20)
+	}
+	if vs := ctx.r.Form[key]; len(vs) > 0 {
+		return vs[0]
+	}
+	return defaultName
+}
+
+type FormFileInfo struct {
+	Data     []byte
+	Filename string
+	Header   textproto.MIMEHeader
+	Size     int64
+}
+
+func (ctx *MyContext) FormFile(key string) (*FormFileInfo, error) {
+	file, fileHeader, err := ctx.r.FormFile(key)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	return &FormFileInfo{
+		Data:     data,
+		Filename: fileHeader.Filename,
+		Header:   fileHeader.Header,
+		Size:     fileHeader.Size,
+	}, nil
+}
+
+func (ctx *MyContext) WriteHeader(httpStatusCode int) {
+	ctx.w.WriteHeader(httpStatusCode)
 }
