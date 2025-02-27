@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"net/textproto"
@@ -117,4 +118,13 @@ func (ctx *MyContext) FormFile(key string) (*FormFileInfo, error) {
 
 func (ctx *MyContext) WriteHeader(httpStatusCode int) {
 	ctx.w.WriteHeader(httpStatusCode)
+}
+
+func (ctx *MyContext) RenderHtml(filepath string, data any) error {
+	t, err := template.ParseFiles(filepath)
+	if err != nil {
+		return err
+	}
+
+	return t.Execute(ctx.w, data)
 }

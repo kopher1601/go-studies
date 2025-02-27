@@ -66,27 +66,15 @@ func PostsController(ctx *framework.MyContext) {
 	ctx.WriteString("success")
 }
 
+type PostPageForm struct {
+	Name string
+}
+
 func PostsPageController(ctx *framework.MyContext) {
-	ctx.WriteString(`<!DOCTYPE html>
-	<html>
-		<head>
-			<title>form</title>
-		</head>
-		<body>
-			<div>
-				<form action="/posts" method="post" enctype="multipart/form-data">
-					<div><label>name</label>: <input name="name"/></div>
-					<div><label>age</label>: 
-					<select name="age">
-						<option value="1">1</option>
-						<option value="2">2</option>
-					</select></div>
-					<button type="submit">submit</button>
-					<input name="file" type="file"/>
-				</form>
-			</div>
-		</body>
-	</html>`)
+	postPageForm := &PostPageForm{
+		Name: "aaa",
+	}
+	ctx.RenderHtml("./htmls/posts_page.html", postPageForm)
 }
 
 type UserPost struct {
