@@ -90,3 +90,8 @@ func UserController(ctx *framework.MyContext) {
 	}
 	ctx.Json(u)
 }
+
+func JsonPTestController(ctx *framework.MyContext) {
+	queryKey := ctx.QueryKey("callback", "cb")
+	ctx.JsonP(queryKey, "")
+}

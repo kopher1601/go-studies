@@ -47,6 +47,24 @@ func (ctx *MyContext) Json(data any) {
 	ctx.w.Write(responseData)
 }
 
+func (ctx *MyContext) JsonP(callback string, parameter any) error {
+	ctx.w.Header().Add("Content-Type", "application/javascript")
+	callback = template.JSEscapeString(callback)
+	_, err := ctx.w.Write([]byte(callback))
+	_, err = ctx.w.Write([]byte("("))
+	parameterData, err := json.Marshal(parameter)
+	if err != nil {
+		return err
+	}
+	_, err = ctx.w.Write(parameterData)
+	_, err = ctx.w.Write([]byte(")"))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (ctx *MyContext) WriteString(data string) {
 	ctx.w.WriteHeader(http.StatusOK)
 	fmt.Fprint(ctx.w, data)
