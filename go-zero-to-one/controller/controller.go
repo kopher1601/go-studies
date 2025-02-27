@@ -88,3 +88,17 @@ func PostsPageController(ctx *framework.MyContext) {
 		</body>
 	</html>`)
 }
+
+type UserPost struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
+func UserController(ctx *framework.MyContext) {
+	u := &UserPost{}
+	if err := ctx.BindJson(u); err != nil {
+		ctx.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	ctx.Json(u)
+}

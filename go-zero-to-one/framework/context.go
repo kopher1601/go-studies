@@ -1,6 +1,7 @@
 package framework
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -20,6 +21,17 @@ func NewMyContext(w http.ResponseWriter, r *http.Request) *MyContext {
 		r:      r,
 		params: make(map[string]string),
 	}
+}
+
+func (ctx *MyContext) BindJson(data any) error {
+	byteData, err := io.ReadAll(ctx.r.Body)
+	if err != nil {
+		return err
+	}
+
+	ctx.r.Body = io.NopCloser(bytes.NewBuffer(byteData))
+
+	return json.Unmarshal(byteData, data)
 }
 
 func (ctx *MyContext) Json(data any) {
