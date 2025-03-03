@@ -1,9 +1,12 @@
 package framework
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type Engine struct {
@@ -76,7 +79,24 @@ func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	paramDicts := targetNode.ParseParams(r.URL.Path)
 	ctx.SetParams(paramDicts)
-	targetNode.handler(ctx)
+
+	ch := make(chan struct{})
+	go func() {
+		time.Sleep(time.Second * 5)
+		targetNode.handler(ctx)
+		ch <- struct{}{}
+	}()
+
+	durationContext, cancel := context.WithTimeout(r.Context(), time.Second*5)
+	defer cancel()
+
+	select {
+	case <-durationContext.Done():
+		ctx.SetHasTimeout(true)
+		fmt.Fprintln(w, "timeout")
+	case <-ch:
+	}
+
 	return
 }
 

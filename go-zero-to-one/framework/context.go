@@ -12,11 +12,12 @@ import (
 )
 
 type MyContext struct {
-	w      http.ResponseWriter
-	r      *http.Request
-	params map[string]string
-	keys   map[string]any
-	mux    sync.RWMutex
+	w          http.ResponseWriter
+	r          *http.Request
+	params     map[string]string
+	keys       map[string]any
+	mux        sync.RWMutex
+	hasTimeout bool
 }
 
 func NewMyContext(w http.ResponseWriter, r *http.Request) *MyContext {
@@ -50,6 +51,13 @@ func (ctx *MyContext) Set(key string, value any) {
 	ctx.keys[key] = value
 }
 
+func (ctx *MyContext) SetHasTimeout(timeout bool) {
+	ctx.hasTimeout = timeout
+}
+func (ctx *MyContext) HasTimeout() bool {
+	return ctx.hasTimeout
+}
+
 func (ctx *MyContext) BindJson(data any) error {
 	byteData, err := io.ReadAll(ctx.r.Body)
 	if err != nil {
@@ -62,6 +70,10 @@ func (ctx *MyContext) BindJson(data any) error {
 }
 
 func (ctx *MyContext) Json(data any) {
+	if ctx.hasTimeout {
+		return
+	}
+
 	responseData, err := json.Marshal(data)
 	if err != nil {
 		ctx.w.WriteHeader(http.StatusInternalServerError)
@@ -74,6 +86,9 @@ func (ctx *MyContext) Json(data any) {
 }
 
 func (ctx *MyContext) JsonP(callback string, parameter any) error {
+	if ctx.hasTimeout {
+		return nil
+	}
 	ctx.w.Header().Add("Content-Type", "application/javascript")
 	callback = template.JSEscapeString(callback)
 	_, err := ctx.w.Write([]byte(callback))
@@ -92,6 +107,9 @@ func (ctx *MyContext) JsonP(callback string, parameter any) error {
 }
 
 func (ctx *MyContext) WriteString(data string) {
+	if ctx.hasTimeout {
+		return
+	}
 	ctx.w.WriteHeader(http.StatusOK)
 	fmt.Fprint(ctx.w, data)
 }
@@ -165,6 +183,9 @@ func (ctx *MyContext) WriteHeader(httpStatusCode int) {
 }
 
 func (ctx *MyContext) RenderHtml(filepath string, data any) error {
+	if ctx.hasTimeout {
+		return nil
+	}
 	t, err := template.ParseFiles(filepath)
 	if err != nil {
 		return err
