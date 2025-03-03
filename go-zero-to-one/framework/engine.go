@@ -81,7 +81,13 @@ func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx.SetParams(paramDicts)
 
 	ch := make(chan struct{})
+	panicCh := make(chan struct{})
 	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				panicCh <- struct{}{}
+			}
+		}()
 		time.Sleep(time.Second * 5)
 		targetNode.handler(ctx)
 		ch <- struct{}{}
@@ -95,6 +101,9 @@ func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctx.SetHasTimeout(true)
 		fmt.Fprintln(w, "timeout")
 	case <-ch:
+		fmt.Println("finish")
+	case <-panicCh:
+		ctx.w.WriteHeader(http.StatusInternalServerError)
 	}
 
 	return
