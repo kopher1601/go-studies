@@ -8,12 +8,15 @@ import (
 	"io"
 	"net/http"
 	"net/textproto"
+	"sync"
 )
 
 type MyContext struct {
 	w      http.ResponseWriter
 	r      *http.Request
 	params map[string]string
+	keys   map[string]any
+	mux    sync.RWMutex
 }
 
 func NewMyContext(w http.ResponseWriter, r *http.Request) *MyContext {
@@ -21,7 +24,30 @@ func NewMyContext(w http.ResponseWriter, r *http.Request) *MyContext {
 		w:      w,
 		r:      r,
 		params: make(map[string]string),
+		mux:    sync.RWMutex{},
 	}
+}
+
+func (ctx *MyContext) Get(key string, defaultValue any) any {
+	ctx.mux.RLock()
+	defer ctx.mux.RUnlock()
+	if ctx.keys == nil {
+		return defaultValue
+	}
+
+	if res, ok := ctx.keys[key]; ok {
+		return res
+	}
+	return defaultValue
+}
+
+func (ctx *MyContext) Set(key string, value any) {
+	ctx.mux.Lock()
+	defer ctx.mux.Unlock()
+	if ctx.keys == nil {
+		ctx.keys = make(map[string]any)
+	}
+	ctx.keys[key] = value
 }
 
 func (ctx *MyContext) BindJson(data any) error {

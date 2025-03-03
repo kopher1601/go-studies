@@ -63,6 +63,7 @@ func (r *Router) Patch(pathname string, handler func(ctx *MyContext)) error {
 
 func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := NewMyContext(w, r)
+	ctx.Set("AuthUser", "test")
 	routingTable := e.Router.routingTables[strings.ToLower(r.Method)]
 
 	path := r.URL.Path
