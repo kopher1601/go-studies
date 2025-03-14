@@ -9,7 +9,7 @@ import (
 )
 
 type UserRepository interface {
-	PerRegister(ctx context.Context, user *entity.User) error
+	PreRegister(ctx context.Context, user *entity.User) error
 	GetByEmail(ctx context.Context, email string) (*entity.User, error)
 	Delete(ctx context.Context, id entity.UserID) error
 }
@@ -23,7 +23,7 @@ func NewUserRepository(db *sqlx.DB) UserRepository {
 }
 
 // ユーザーをstate=inactiveで保存する
-func (u *userRepository) PerRegister(ctx context.Context, user *entity.User) error {
+func (u *userRepository) PreRegister(ctx context.Context, user *entity.User) error {
 	user.UpdatedAt = time.Now()
 	user.CreatedAt = time.Now()
 	user.State = entity.UserInactive

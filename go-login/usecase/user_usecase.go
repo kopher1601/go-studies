@@ -10,7 +10,7 @@ import (
 	"math/rand"
 )
 
-type Usecase interface {
+type UserUsecase interface {
 	PreRegister(ctx context.Context, email, password string) (*entity.User, error)
 }
 
@@ -19,7 +19,7 @@ type userUsecase struct {
 	mailer mail.Mailer
 }
 
-func NewUserUsecase(ur repository.UserRepository, mailer mail.Mailer) Usecase {
+func NewUserUsecase(ur repository.UserRepository, mailer mail.Mailer) UserUsecase {
 	return &userUsecase{
 		ur:     ur,
 		mailer: mailer,
@@ -67,7 +67,7 @@ func (u *userUsecase) preRegister(ctx context.Context, email string, password st
 	user.State = entity.UserInactive
 
 	// DBへの仮登録処理を行う
-	if err := u.ur.PreRegister(ctx, u); err != nil {
+	if err := u.ur.PreRegister(ctx, user); err != nil {
 		return nil, err
 	}
 	// email宛に、本人確認用のトークンを送信する
