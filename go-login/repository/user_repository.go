@@ -12,6 +12,7 @@ type UserRepository interface {
 	PreRegister(ctx context.Context, user *entity.User) error
 	GetByEmail(ctx context.Context, email string) (*entity.User, error)
 	Delete(ctx context.Context, id entity.UserID) error
+	Activate(ctx context.Context, user *entity.User) error
 }
 
 type userRepository struct {
@@ -57,6 +58,17 @@ func (u *userRepository) Delete(ctx context.Context, id entity.UserID) error {
 
 	if _, err := u.db.ExecContext(ctx, query, id); err != nil {
 		return fmt.Errorf("failed to delete user: %w", err)
+	}
+	return nil
+}
+
+func (u *userRepository) Activate(ctx context.Context, user *entity.User) error {
+	user.UpdatedAt = time.Now()
+	user.State = entity.UserActive
+
+	query := `UPDATE user SET state = :state, updated_at = :updated_at WHERE email = :email`
+	if _, err := u.db.NamedExecContext(ctx, query, user); err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
 	}
 	return nil
 }
