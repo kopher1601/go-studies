@@ -2,5 +2,5 @@ package types
 
 const (
 	SocketBufferSize  = 1024
-	messageBufferSize = 256
+	MessageBufferSize = 256
 )
