@@ -1,6 +1,17 @@
 package network
 
-import "github.com/gorilla/websocket"
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+)
+
+var upgrader = &websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
 
 type Room struct {
 	Forward chan *message // 수신되는 메시지를 보관하는 값
@@ -21,4 +32,20 @@ type Client struct {
 	Room   *Room
 	Name   string
 	Socket *websocket.Conn
+}
+
+func NewRoom() *Room {
+	return &Room{
+		Forward: make(chan *message),
+		Join:    make(chan *Client),
+		Leave:   make(chan *Client),
+		Clients: make(map[*Client]bool),
+	}
+}
+
+func (r *Room) SocketServe(c *gin.Context) {
+	socket, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		panic(err)
+	}
 }
