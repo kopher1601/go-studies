@@ -6,12 +6,15 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"io"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 const baseURL = "https://api.bitflyer.com/v1/"
@@ -27,7 +30,7 @@ func New(key, secret string) *APIClient {
 	return apiClient
 }
 
-func (api *APIClient) header(method, endpoint string, body []byte) map[string]string {
+func (api APIClient) header(method, endpoint string, body []byte) map[string]string {
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 	message := timestamp + method + endpoint + string(body)
 
@@ -52,7 +55,7 @@ func (api *APIClient) doRequest(method, urlPath string, query map[string]string,
 		return
 	}
 	endpoint := baseURL.ResolveReference(apiURL).String()
-	log.Println("action=doRequest endpoint=%s", endpoint)
+	log.Printf("action=doRequest endpoint=%s", endpoint)
 	req, err := http.NewRequest(method, endpoint, bytes.NewBuffer(data))
 	if err != nil {
 		return
@@ -62,6 +65,7 @@ func (api *APIClient) doRequest(method, urlPath string, query map[string]string,
 		q.Add(key, value)
 	}
 	req.URL.RawQuery = q.Encode()
+
 	for key, value := range api.header(method, req.URL.RequestURI(), data) {
 		req.Header.Add(key, value)
 	}
@@ -70,7 +74,7 @@ func (api *APIClient) doRequest(method, urlPath string, query map[string]string,
 		return nil, err
 	}
 	defer resp.Body.Close()
-	body, err = io.ReadAll(resp.Body)
+	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +106,6 @@ func (api *APIClient) GetBalance() ([]Balance, error) {
 
 type Ticker struct {
 	ProductCode     string  `json:"product_code"`
-	State           string  `json:"state"`
 	Timestamp       string  `json:"timestamp"`
 	TickID          int     `json:"tick_id"`
 	BestBid         float64 `json:"best_bid"`
@@ -111,8 +114,6 @@ type Ticker struct {
 	BestAskSize     float64 `json:"best_ask_size"`
 	TotalBidDepth   float64 `json:"total_bid_depth"`
 	TotalAskDepth   float64 `json:"total_ask_depth"`
-	MarketBidSize   float64 `json:"market_bid_size"`
-	MarketAskSize   float64 `json:"market_ask_size"`
 	Ltp             float64 `json:"ltp"`
 	Volume          float64 `json:"volume"`
 	VolumeByProduct float64 `json:"volume_by_product"`
@@ -137,16 +138,155 @@ func (t *Ticker) TruncateDateTime(duration time.Duration) time.Time {
 func (api *APIClient) GetTicker(productCode string) (*Ticker, error) {
 	url := "ticker"
 	resp, err := api.doRequest("GET", url, map[string]string{"product_code": productCode}, nil)
-	log.Printf("url=%s resp=%s", url, string(resp))
 	if err != nil {
-		log.Printf("action=GetBalance err=%s", err.Error())
 		return nil, err
 	}
 	var ticker Ticker
 	err = json.Unmarshal(resp, &ticker)
 	if err != nil {
-		log.Printf("action=GetBalance err=%s", err.Error())
 		return nil, err
 	}
 	return &ticker, nil
+}
+
+// Pubnub service is scheduled to stop on 1st Dec, 2018
+/*
+func (api *APIClient) GetRealTimeTicker(symbol string, ch chan<- Ticker) {
+	pubnub := messaging.NewPubnub(
+		"", "sub-c-52a9ab50-291b-11e5-baaa-0619f8945a4f",
+		"", "", false, "", nil)
+
+	channel := fmt.Sprintf("lightning_ticker_%s", symbol)
+	sucCha := make(chan []byte)
+	errCha := make(chan []byte)
+
+	// [[{"best_ask":6206.99,"best_ask_size":1.24,"best_bid":6164,"best_bid_size":0.3,"ltp":6184.1,"product_code":"BTC_USD","tick_id":33839,"timestamp":"2018-10-12T03:01:53.8597609Z","total_ask_depth":228.3295673,"total_bid_depth":15.3916763,"volume":37.29123857,"volume_by_product":37.29123857}], "15393133139745912", "lightning_ticker_BTC_USD"]
+	go pubnub.Subscribe(channel, "", sucCha, false, errCha)
+
+	OUTER:
+		for {
+			select {
+			case res := <-sucCha:
+				var tickerList []interface{}
+				if err := json.Unmarshal(res, &tickerList); err != nil {
+					continue OUTER
+				}
+				var ticker Ticker
+				switch tic := tickerList[0].(type){
+				case []interface{}:
+					if len(tic)	 == 0 {
+						continue OUTER
+					}
+					marshaTic, err := json.Marshal(tic[0])
+					if err != nil {
+						continue OUTER
+					}
+					if err := json.Unmarshal(marshaTic, &ticker); err != nil {
+						continue OUTER
+					}
+					ch <- ticker
+				}
+
+			case err := <-errCha:
+				log.Printf("action=GetRealTimeTicker err=%s", err)
+			case <-messaging.SubscribeTimeout():
+				log.Printf("action=GetRealTimeTicker err=timeout")
+			}
+		}
+}
+*/
+
+type JsonRPC2 struct {
+	Version string      `json:"jsonrpc"`
+	Method  string      `json:"method"`
+	Params  interface{} `json:"params"`
+	Result  interface{} `json:"result,omitempty"`
+	Id      *int        `json:"id,omitempty"`
+}
+
+type SubscribeParams struct {
+	Channel string `json:"channel"`
+}
+
+func (api *APIClient) GetRealTimeTicker(symbol string, ch chan<- Ticker) {
+	u := url.URL{Scheme: "wss", Host: "ws.lightstream.bitflyer.com", Path: "/json-rpc"}
+	log.Printf("connecting to %s", u.String())
+
+	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		log.Fatal("dial:", err)
+	}
+	defer c.Close()
+
+	channel := fmt.Sprintf("lightning_ticker_%s", symbol)
+	if err := c.WriteJSON(&JsonRPC2{Version: "2.0", Method: "subscribe", Params: &SubscribeParams{channel}}); err != nil {
+		log.Fatal("subscribe:", err)
+		return
+	}
+
+OUTER:
+	for {
+		message := new(JsonRPC2)
+		if err := c.ReadJSON(message); err != nil {
+			log.Println("read:", err)
+			return
+		}
+
+		if message.Method == "channelMessage" {
+			switch v := message.Params.(type) {
+			case map[string]interface{}:
+				for key, binary := range v {
+					if key == "message" {
+						marshaTic, err := json.Marshal(binary)
+						if err != nil {
+							continue OUTER
+						}
+						var ticker Ticker
+						if err := json.Unmarshal(marshaTic, &ticker); err != nil {
+							continue OUTER
+						}
+						ch <- ticker
+					}
+				}
+			}
+		}
+	}
+}
+
+type Order struct {
+	ID                     int     `json:"id"`
+	ChildOrderAcceptanceID string  `json:"child_order_acceptance_id"`
+	ProductCode            string  `json:"product_code"`
+	ChildOrderType         string  `json:"child_order_type"`
+	Side                   string  `json:"side"`
+	Price                  float64 `json:"price"`
+	Size                   float64 `json:"size"`
+	MinuteToExpires        int     `json:"minute_to_expire"`
+	TimeInForce            string  `json:"time_in_force"`
+	Status                 string  `json:"status"`
+	ErrorMessage           string  `json:"error_message"`
+	AveragePrice           float64 `json:"average_price"`
+	ChildOrderState        string  `json:"child_order_state"`
+	ExpireDate             string  `json:"expire_date"`
+	ChildOrderDate         string  `json:"child_order_date"`
+	OutstandingSize        float64 `json:"outstanding_size"`
+	CancelSize             float64 `json:"cancel_size"`
+	ExecutedSize           float64 `json:"executed_size"`
+	TotalCommission        float64 `json:"total_commission"`
+	Count                  int     `json:"count"`
+	Before                 int     `json:"before"`
+	After                  int     `json:"after"`
+}
+
+type ResponseSendChildOrder struct {
+	ChildOrderAcceptanceID string `json:"child_order_acceptance_id"`
+}
+
+func (api *APIClient) SendOrder(order *Order) (*ResponseSendChildOrder, error) {
+	data, _ := json.Marshal(order)
+	url := "me/sendchildorder"
+	resp, _ := api.doRequest("POST", url, map[string]string{}, data)
+	var response ResponseSendChildOrder
+	_ = json.Unmarshal(resp, &response)
+	return &response, nil
 }
