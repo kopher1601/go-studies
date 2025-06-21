@@ -19,13 +19,22 @@ type Member struct {
 	status       MemberStatus
 }
 
-func NewMember(email, nickname, passwordHash string) *Member {
+func newMember(email, nickname, passwordHash string) *Member {
 	return &Member{
 		email:        email,
 		nickname:     nickname,
 		passwordHash: passwordHash,
 		status:       MemberStatusPending,
 	}
+}
+
+func CreateMember(email, nickname, password string, passwordEncoder PasswordEncoder) (*Member, error) {
+	passwordHash, err := passwordEncoder.Encode(password)
+	if err != nil {
+		return nil, err
+	}
+
+	return newMember(email, nickname, passwordHash), nil
 }
 
 func (m *Member) Activate() error {
