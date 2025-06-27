@@ -1,5 +1,0 @@
-package gosplearn
-
-func main() {
-
-}
