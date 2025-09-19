@@ -1,5 +1,12 @@
 # go-tdd
 
+## Formatting
+```go
+//  %q は値を二重引用符で囲む
+t.Errorf("got %q want %q", got, want)
+```
+
+## Test
 
 goではファイルを指定するのではなくディレクトリを指定する必要がある
 ```shell
@@ -10,8 +17,6 @@ go test ./hello-word/
 go test ./...
 ```
 
-## Formatting
-```go
-//  %q は値を二重引用符で囲む
-t.Errorf("got %q want %q", got, want)
-```
+### t.Helper()
+`t.Helper()`は、このメソッドがヘルパーであることをテストスイートに伝えるために必要です。こうすることで、テストが失敗したときに報告される行番号は、テストヘルパーの中ではなく 呼び出された関数 の中を示します。
+
