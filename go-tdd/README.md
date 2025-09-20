@@ -15,6 +15,9 @@ go test ./hello-word/
 
 # または全体テスト
 go test ./...
+
+# bench
+go test ./iteration/ -bench=.
 ```
 
 ### t.Helper()
