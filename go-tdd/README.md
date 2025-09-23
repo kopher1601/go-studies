@@ -4,6 +4,9 @@
 ```go
 //  %q は値を二重引用符で囲む
 t.Errorf("got %q want %q", got, want)
+
+%v the value in a default format
+when printing structs, the plus flag (%+v) adds field names
 ```
 
 ## Test
