@@ -1,12 +1,18 @@
 # go-tdd
 
+- https://andmorefine.gitbook.io/learn-go-with-tests
+
 ## Formatting
 ```go
 //  %q は値を二重引用符で囲む
 t.Errorf("got %q want %q", got, want)
 
+// v
 %v the value in a default format
 when printing structs, the plus flag (%+v) adds field names
+
+// f
+fは float64用で、 .2は小数点以下2桁を出力することを意味します。
 ```
 
 ## Test
