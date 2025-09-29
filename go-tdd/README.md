@@ -42,3 +42,9 @@ Goでは、スライスで等号演算子を使うことはできません。got
 reflect.DeepEqual([]int{1,2}, []int{3,9})
 ```
 
+## Pointer
+
+Goでは、関数またはメソッドを呼び出すと、引数は _ コピーされます。
+
+`func (w Wallet) Deposit(amount int)`を呼び出すとき、 `w`はメソッドの呼び出し元のコピーです。
+
