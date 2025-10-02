@@ -1,0 +1,3 @@
+syntax = "proto3"; // 設定しないとデフォルトで proto2 が使用される
+
+// comment
