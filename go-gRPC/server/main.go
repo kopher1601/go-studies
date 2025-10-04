@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"net"
 	"os"
 
 	"github.com/kopher1601/go-studies/go-gRPC/pb"
+	"google.golang.org/grpc"
 )
 
 type server struct {
@@ -33,4 +36,19 @@ func (s *server) ListFiles(ctx context.Context, req *pb.ListFilesRequest) (*pb.L
 		Filenames: filenames,
 	}
 	return res, nil
+}
+
+func main() {
+	lis, err := net.Listen("tcp", "localhost:50051")
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	s := grpc.NewServer()
+	pb.RegisterFileServiceServer(s, &server{})
+
+	fmt.Println("Server started")
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }
