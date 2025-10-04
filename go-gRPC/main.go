@@ -3,10 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/kopher1601/go-studies/go-gRPC/pb"
-	"google.golang.org/protobuf/proto"
 )
 
 func main() {
@@ -30,25 +29,38 @@ func main() {
 	}
 
 	// serialize
-	binData, err := proto.Marshal(employee)
-	if err != nil {
-		log.Fatalln("Can't serialize", err)
-	}
-
-	if err := os.WriteFile("test.bin", binData, 0666); err != nil {
-		log.Fatalln("Can't write", err)
-	}
-
-	in, err := os.ReadFile("test.bin")
-	if err != nil {
-		log.Fatalln("Can't read", err)
-	}
+	//binData, err := proto.Marshal(employee)
+	//if err != nil {
+	//	log.Fatalln("Can't serialize", err)
+	//}
+	//
+	//if err := os.WriteFile("test.bin", binData, 0666); err != nil {
+	//	log.Fatalln("Can't write", err)
+	//}
+	//
+	//in, err := os.ReadFile("test.bin")
+	//if err != nil {
+	//	log.Fatalln("Can't read", err)
+	//}
 
 	//var newEmployee pb.Employee
-	newEmployee := &pb.Employee{}
-	if err := proto.Unmarshal(in, newEmployee); err != nil {
-		log.Fatalln("Can't deserialize", err)
+	//newEmployee := &pb.Employee{}
+	//if err := proto.Unmarshal(in, newEmployee); err != nil {
+	//	log.Fatalln("Can't deserialize", err)
+	//}
+	//
+	//fmt.Println(newEmployee)
+
+	m := jsonpb.Marshaler{}
+	out, err := m.MarshalToString(employee)
+	if err != nil {
+		log.Fatalln("Can't marshal", err)
 	}
 
-	fmt.Println(newEmployee)
+	readEmployee := &pb.Employee{}
+	if err := jsonpb.UnmarshalString(out, readEmployee); err != nil {
+		log.Fatalln("Can't unmarshal", err)
+	}
+
+	fmt.Println(readEmployee)
 }
