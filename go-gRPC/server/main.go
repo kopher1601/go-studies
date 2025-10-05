@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
+	"time"
 
 	"github.com/kopher1601/go-studies/go-gRPC/pb"
 	"google.golang.org/grpc"
@@ -36,6 +38,39 @@ func (s *server) ListFiles(ctx context.Context, req *pb.ListFilesRequest) (*pb.L
 		Filenames: filenames,
 	}
 	return res, nil
+}
+
+func (s *server) Download(req *pb.DownloadRequest, stream pb.FileService_DownloadServer) error {
+	fmt.Println("Download was invoked")
+
+	filename := req.GetFilename()
+	path := "/Users/kopher/Projects/go-studies/go-gRPC/storage/" + filename
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	buf := make([]byte, 5)
+	for {
+		n, err := file.Read(buf)
+		if err != nil {
+			return err
+		}
+		if n == 0 || err == io.EOF {
+			break
+		}
+		sendErr := stream.Send(&pb.DownloadResponse{
+			Data: buf[:n],
+		})
+		if sendErr != nil {
+			return sendErr
+		}
+		// for debug
+		time.Sleep(1 * time.Second)
+	}
+
+	return nil
 }
 
 func main() {
